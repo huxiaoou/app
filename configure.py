@@ -19,7 +19,6 @@ INIT_PREMIUM = (200 + 800 + 1000
                 + 1000 + 2000 + 1000 + 1000 + 3000) * WAN_YUAN
 ACCOUNT = "30216888"
 PERMISSION_CODE = "见红塔证投字（2020）第27号文"
-STOP_LOSS_RATIO = 0.064
 
 POS_PROP_SCALE = 1E4
 MARGIN_RATE_SCALE = 100
@@ -30,5 +29,6 @@ VERSION_TAG = ""
 # contracts which are not traded by us
 EXCEPTION_UNIVERSE = ["IC", "IH", "IF"]
 
-# BASE_YEAR_DATE
-BASE_YEAR_DATE = "20201231"  # change it when new year has come
+# BASE_YEAR_DATE # change it when new year has come
+# BASE_YEAR_DATE = "20201231"
+BASE_YEAR_DATE = "20211231"
