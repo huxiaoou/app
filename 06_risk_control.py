@@ -12,6 +12,9 @@ check_and_mkdir(save_dir)
 calendar = CCalendar(os.path.join(CALENDAR_DIR, "cne_calendar.csv"))
 prev_date = calendar.get_next_date(t_this_date=report_date, t_shift=-1)
 
+# --- load premium
+premium_tot = get_premium(t_report_date=report_date, t_premium_book_path=PREMIUM_BOOK_PATH)
+
 # --- load instrument info
 instrument_info = CInstrumentInfo(os.path.join(INSTRUMENT_INFO_DIR, "InstrumentInfo.xlsx"))
 
@@ -121,7 +124,7 @@ ws.range("K{}".format(s)).value = 1 if mkt_val_tot > 0 else 0  # total proportio
 # risk control index
 # 业务规模
 s += 4
-ws.range("B{}".format(s)).value = INIT_PREMIUM / WAN_YUAN
+ws.range("B{}".format(s)).value = premium_tot / WAN_YUAN
 
 # 投资规模
 s += 1
@@ -153,7 +156,7 @@ ws.range("B{}".format(s)).value = pnl_since_this_year / WAN_YUAN
 
 # 杠杆系数
 s += 1
-ws.range("B{}".format(s)).value = mkt_val_net / (INIT_PREMIUM + pnl_tot)
+ws.range("B{}".format(s)).value = mkt_val_net / (premium_tot + pnl_tot)
 
 # 日均业务规模
 s += 1
@@ -169,11 +172,11 @@ ws.range("B{}".format(s)).value = mkt_margin / WAN_YUAN
 
 # 总保证金占比
 s += 1
-ws.range("B{}".format(s)).value = mkt_margin / (INIT_PREMIUM + pnl_tot)
+ws.range("B{}".format(s)).value = mkt_margin / (premium_tot + pnl_tot)
 
 # 资金余额
 s += 1
-ws.range("B{}".format(s)).value = (INIT_PREMIUM + pnl_tot - mkt_margin) / WAN_YUAN
+ws.range("B{}".format(s)).value = (premium_tot + pnl_tot - mkt_margin) / WAN_YUAN
 
 # 最大保证金品种
 s += 1

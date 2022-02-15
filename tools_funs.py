@@ -166,3 +166,11 @@ def update_r07_trades(t_cid, t_cid_pos, t_traded_stats, t_ws, t_s, t_contract_mu
             t_ws.range("P{}".format(t_s)).value = amt_sum / qty_sum / t_contract_multiplier
             t_ws.range("Q{}".format(t_s)).value = amt_sum * t_margin_rate
     return 0
+
+
+def get_premium(t_report_date: str, t_premium_book_path: str) -> float:
+    _sheet_name = t_report_date[0:4]
+    _premium_book_df = pd.read_excel(t_premium_book_path, sheet_name=_sheet_name)
+    _premium_book_df["trade_date"] = _premium_book_df["日期"].map(lambda z: z.strftime("%Y%m%d"))
+    _premium_book_df = _premium_book_df.set_index("trade_date")
+    return _premium_book_df.at[t_report_date, "期末"]

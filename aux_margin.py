@@ -1,9 +1,13 @@
 from setup import *
-from configure import INIT_PREMIUM
+from configure import PREMIUM_BOOK_PATH
+from tools_funs import get_premium
 from skyrim.whiterun import parse_instrument_from_contract
 from skyrim.winterhold import check_and_mkdir
 
 report_date = sys.argv[1]
+
+# --- load premium
+premium_tot = get_premium(t_report_date=report_date, t_premium_book_path=PREMIUM_BOOK_PATH)
 
 # --- load pnl data
 summary_stats_file = "summary.csv"
@@ -22,8 +26,8 @@ else:
     report_pos_sum_df["instrument"] = report_pos_sum_df["cid"].map(parse_instrument_from_contract)
     report_margin_df = pd.pivot_table(data=report_pos_sum_df, index="instrument", values=["qty", "cost_margin", "mkt_margin"], aggfunc=sum)
     report_margin_df = report_margin_df[["qty", "cost_margin", "mkt_margin"]]
-    report_margin_df["cost_margin_ratio"] = report_margin_df["cost_margin"] / (INIT_PREMIUM + pnl_tot) * 100
-    report_margin_df["mkt_margin_ratio"] = report_margin_df["mkt_margin"] / (INIT_PREMIUM + pnl_tot) * 100
+    report_margin_df["cost_margin_ratio"] = report_margin_df["cost_margin"] / (premium_tot + pnl_tot) * 100
+    report_margin_df["mkt_margin_ratio"] = report_margin_df["mkt_margin"] / (premium_tot + pnl_tot) * 100
     report_margin_df = report_margin_df.sort_values(by=["mkt_margin"], ascending=False)
 
 report_margin_file = "margin.{}.csv".format(report_date)
