@@ -174,3 +174,19 @@ def get_premium(t_report_date: str, t_premium_book_path: str) -> float:
     _premium_book_df["trade_date"] = _premium_book_df["日期"].map(lambda z: z.strftime("%Y%m%d"))
     _premium_book_df = _premium_book_df.set_index("trade_date")
     return _premium_book_df.at[t_report_date, "期末"]
+
+
+def get_in_money(t_report_date: str, t_premium_book_path: str) -> float:
+    _sheet_name = t_report_date[0:4]
+    _premium_book_df = pd.read_excel(t_premium_book_path, sheet_name=_sheet_name)
+    _premium_book_df["trade_date"] = _premium_book_df["日期"].map(lambda z: z.strftime("%Y%m%d"))
+    _premium_book_df = _premium_book_df.set_index("trade_date")
+    return _premium_book_df.at[t_report_date, "上账"]
+
+
+def get_out_money(t_report_date: str, t_premium_book_path: str) -> float:
+    _sheet_name = t_report_date[0:4]
+    _premium_book_df = pd.read_excel(t_premium_book_path, sheet_name=_sheet_name)
+    _premium_book_df["trade_date"] = _premium_book_df["日期"].map(lambda z: z.strftime("%Y%m%d"))
+    _premium_book_df = _premium_book_df.set_index("trade_date")
+    return _premium_book_df.at[t_report_date, "下账"]

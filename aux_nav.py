@@ -1,15 +1,17 @@
 from setup import *
 from tools_class import CNAV
-from configure import nav_file, WAN_YUAN
+from configure import nav_file, PREMIUM_BOOK_PATH
+from tools_funs import get_in_money, get_out_money
 from skyrim.whiterun import CCalendar
 
 report_date = sys.argv[1]
 calendar = CCalendar(os.path.join(CALENDAR_DIR, "cne_calendar.csv"))
 prev_date = calendar.get_next_date(report_date, t_shift=-1)
 
-print("IMPORTANT : if {} is a in-money/out-share date, make sure to set the corresponding variable manually before run".format(report_date))
-in_money = 0 * WAN_YUAN  # 入金
-out_share = 0  # 转出份额
+# --- load premium
+print("IMPORTANT : if {} is a in-money/out-share date, make sure to set the corresponding variable manually in {} before run".format(report_date, PREMIUM_BOOK_PATH))
+in_money = get_in_money(t_report_date=report_date, t_premium_book_path=PREMIUM_BOOK_PATH)  # 入金
+out_money = get_out_money(t_report_date=report_date, t_premium_book_path=PREMIUM_BOOK_PATH)  # 出金
 
 # load data
 summary_stats_file = "summary.csv"
@@ -49,7 +51,7 @@ ws.range("G{}".format(s)).value = in_money  # 入金
 ws.range("H{}".format(s)).formula = "=K{1}*M{0}".format(s - 1, s)
 ws.range("I{}".format(s)).formula = "=L{}".format(s - 1)
 ws.range("J{}".format(s)).formula = "=G{1}/M{0}".format(s - 1, s)
-ws.range("K{}".format(s)).value = out_share  # 份额减少
+ws.range("K{}".format(s)).value = out_money / ws.range("M{}".format(s - 1)).value  # 份额减少
 ws.range("L{}".format(s)).formula = "=I{0}+J{0}-K{0}".format(s)
 ws.range("M{}".format(s)).formula = "=F{0}/L{0}".format(s)
 ws.range("N{}".format(s)).formula = "=M{1}/M{0}-1".format(s - 1, s)
