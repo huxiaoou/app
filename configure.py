@@ -18,7 +18,7 @@ WAN_YUAN = 1E4
 
 ACCOUNT = "30216888"
 PERMISSION_CODE = "见红塔证投字（2020）第27号文"
-PREMIUM_BOOK_PATH = "E:\\Works\\Trade\\上账下账\\上下账总表-30216888-大宗商品.xlsx"
+PREMIUM_BOOK_PATH = "/Works\\Trade\\上账下账\\上下账总表-30216888-大宗商品.xlsx"
 
 POS_PROP_SCALE = 1E4
 MARGIN_RATE_SCALE = 100

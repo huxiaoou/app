@@ -68,6 +68,6 @@ save_path = os.path.join(save_dir, save_file)
 if os.path.exists(save_path):
     os.remove(save_path)
 wb.save(save_path)
-wb.api.PrintOut()
+# wb.api.PrintOut()
 wb.close()
 print("| {2} | {0} | {1} | generated |".format(report_name, save_file, dt.datetime.now()))
