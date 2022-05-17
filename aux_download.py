@@ -7,6 +7,7 @@ report_date = sys.argv[1]
 calendar = CCalendar(os.path.join(CALENDAR_DIR, "cne_calendar.csv"))
 prev_date = calendar.get_next_date(report_date, t_shift=-1)
 
+# initialize contract set
 contract_set = set()
 
 # update from position
