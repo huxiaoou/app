@@ -25,6 +25,21 @@ this_pos_sum_df = pd.read_csv(this_pos_sum_path, header=0)
 if len(this_pos_sum_df) <= 0:
     print("No position info for {}".format(report_date))
 
+# --- update instrument q05 q95 and VaR
+this_pos_sum_by_instru_path = this_pos_sum_path.replace("position.summary", "position_by_instru.summary")
+if os.path.exists(this_pos_sum_by_instru_path):
+    this_pos_sum_by_instru_df = pd.read_csv(this_pos_sum_by_instru_path, header=0)
+    this_pos_sum_by_instru_df["windCode"] = this_pos_sum_by_instru_df["instrument"].map(instrument_info.get_windCode)
+    this_pos_sum_by_instru_df["q_l"], this_pos_sum_by_instru_df["q_h"] = zip(*this_pos_sum_by_instru_df["windCode"].map(
+        lambda z: get_instrument_trailing_return_quantile(z, report_date, MAJOR_RETURN_DIR, 5, 500, 100)))
+    this_pos_sum_by_instru_df["VaR"] = this_pos_sum_by_instru_df[["signed_mkt_val", "q_l", "q_h"]].apply(
+        lambda z: z["signed_mkt_val"] * z["q_l"] if z["signed_mkt_val"] >= 0 else z["signed_mkt_val"] * z["q_h"],
+        axis=1
+    )
+    report_date_VaR = this_pos_sum_by_instru_df["VaR"].abs().sum()
+else:
+    report_date_VaR = 0
+
 # --- load margin data
 this_margin_file = "margin.{}.csv".format(report_date)
 this_margin_path = os.path.join(INTERMEDIARY_DIR, "margin", report_date[0:4], this_margin_file)
@@ -38,11 +53,13 @@ else:
     max_margin_instru_amt = 0
     max_margin_instru_ratio = 0
 
-# --- load pnl data
+# --- load summary data
 summary_stats_file = "summary.csv"
 summary_stats_path = os.path.join(INTERMEDIARY_DIR, summary_stats_file)
 summary_stats_df = pd.read_csv(summary_stats_path, dtype={"trade_date": str}).set_index("trade_date")
 mkt_val_tot = summary_stats_df.at[report_date, "mkt_val"]
+mkt_val_by_instru_sum = summary_stats_df.at[report_date, "mkt_val_by_instru_sum"]
+mkt_val_by_instru_max = summary_stats_df.at[report_date, "mkt_val_by_instru_max"]
 mkt_val_net = summary_stats_df.at[report_date, "mkt_val_net"]
 mkt_val_lng = summary_stats_df.at[report_date, "mkt_val_lng"]
 mkt_val_srt = summary_stats_df.at[report_date, "mkt_val_srt"]
@@ -121,82 +138,101 @@ ws.range("F{}".format(s)).value = mkt_val_tot  # sum of market value
 ws.range("H{}".format(s)).value = cost_val_tot  # sum of cost value
 ws.range("K{}".format(s)).value = 1 if mkt_val_tot > 0 else 0  # total proportion
 
-# risk control index
-# 业务规模
+# risk control indicator
+# 方向性总敞口
 s += 4
-ws.range("B{}".format(s)).value = premium_tot / WAN_YUAN
+ws.range("F{}".format(s)).value = mkt_val_by_instru_sum / WAN_YUAN
 
-# 投资规模
+# 市场风险资本准备占用
 s += 1
-ws.range("B{}".format(s)).value = mkt_val_net / WAN_YUAN
+scale_coe = 0.1
+cal_coe = 0.2
+ws.range("F{}".format(s)).value = mkt_val_tot * scale_coe * cal_coe / WAN_YUAN
 
-# 多头合约市值
+# 损失预警限额：今年以来组合盈亏
 s += 1
-ws.range("B{}".format(s)).value = mkt_val_lng / WAN_YUAN
+ws.range("F{}".format(s)).value = pnl_since_this_year / WAN_YUAN
 
-# 空头合约市值
+# 单一标的方向性总敞口
 s += 1
-ws.range("B{}".format(s)).value = mkt_val_srt / WAN_YUAN
+ws.range("F{}".format(s)).value = mkt_val_by_instru_max / WAN_YUAN
 
-# 多空比
+# 风险价值VAR值（市场风险整体）
 s += 1
-ws.range("B{}".format(s)).value = mkt_val_lng / mkt_val_srt
+ws.range("F{}".format(s)).value = report_date_VaR / WAN_YUAN
 
-# 组合盈亏
+# 业务规模
 s += 1
-ws.range("B{}".format(s)).value = pnl_tot / WAN_YUAN
-
-# 往年已实现盈亏
-s += 1
-ws.range("B{}".format(s)).value = pnl_base_realize / WAN_YUAN
-
-# 今年以来组合盈亏
-s += 1
-ws.range("B{}".format(s)).value = pnl_since_this_year / WAN_YUAN
-
-# 杠杆系数
-s += 1
-ws.range("B{}".format(s)).value = mkt_val_net / (premium_tot + pnl_tot)
-
-# 日均业务规模
-s += 1
-ws.range("B{}".format(s)).value = daily_premium_aver / WAN_YUAN
-
-# 组合盈亏比例
-s += 1
-ws.range("B{}".format(s)).value = pnl_tot / daily_premium_aver
-
-# 总保证金
-s += 1
-ws.range("B{}".format(s)).value = mkt_margin / WAN_YUAN
+ws.range("F{}".format(s)).value = premium_tot / WAN_YUAN
 
 # 总保证金占比
 s += 1
-ws.range("B{}".format(s)).value = mkt_margin / (premium_tot + pnl_tot)
-
-# 资金余额
-s += 1
-ws.range("B{}".format(s)).value = (premium_tot + pnl_tot - mkt_margin) / WAN_YUAN
-
-# 最大保证金品种
-s += 1
-ws.range("B{}".format(s)).value = max_margin_instru.upper() + "-" + CHS_NAME_MAPPER.get(max_margin_instru)
-
-# 最大保证金品种-规模
-s += 1
-ws.range("B{}".format(s)).value = max_margin_instru_amt / WAN_YUAN
+ws.range("F{}".format(s)).value = mkt_margin / (premium_tot + pnl_tot)
 
 # 最大保证金品种-比例
 s += 1
-ws.range("B{}".format(s)).value = max_margin_instru_ratio / 100
+ws.range("F{}".format(s)).value = max_margin_instru_ratio / 100
 
-# VaR
-# 临界收益率
-s += 2
-ws.range("B{}".format(s)).value = q05 / 100 if mkt_val_net > 0 else q95 / 100
-# 对应亏损
-s += 1
-ws.range("B{}".format(s)).value = np.abs((q05 if mkt_val_net > 0 else q95) / 100 * mkt_val_net / WAN_YUAN)
+# # ----------------- obsolete -----------------
+# # 投资规模
+# s += 1
+# ws.range("B{}".format(s)).value = mkt_val_net / WAN_YUAN
+#
+# # 多头合约市值
+# s += 1
+# ws.range("B{}".format(s)).value = mkt_val_lng / WAN_YUAN
+#
+# # 空头合约市值
+# s += 1
+# ws.range("B{}".format(s)).value = mkt_val_srt / WAN_YUAN
+#
+# # 多空比
+# s += 1
+# ws.range("B{}".format(s)).value = mkt_val_lng / mkt_val_srt
+#
+# # 组合盈亏
+# s += 1
+# ws.range("B{}".format(s)).value = pnl_tot / WAN_YUAN
+#
+# # 往年已实现盈亏
+# s += 1
+# ws.range("B{}".format(s)).value = pnl_base_realize / WAN_YUAN
+#
+# # 杠杆系数
+# s += 1
+# ws.range("B{}".format(s)).value = mkt_val_net / (premium_tot + pnl_tot)
+#
+# # 日均业务规模
+# s += 1
+# ws.range("B{}".format(s)).value = daily_premium_aver / WAN_YUAN
+#
+# # 组合盈亏比例
+# s += 1
+# ws.range("B{}".format(s)).value = pnl_tot / daily_premium_aver
+#
+# # 总保证金
+# s += 1
+# ws.range("B{}".format(s)).value = mkt_margin / WAN_YUAN
+#
+# # 资金余额
+# s += 1
+# ws.range("B{}".format(s)).value = (premium_tot + pnl_tot - mkt_margin) / WAN_YUAN
+#
+# # 最大保证金品种
+# s += 1
+# ws.range("B{}".format(s)).value = max_margin_instru.upper() + "-" + CHS_NAME_MAPPER.get(max_margin_instru)
+#
+# # 最大保证金品种-规模
+# s += 1
+# ws.range("B{}".format(s)).value = max_margin_instru_amt / WAN_YUAN
+#
+# # VaR
+# # 临界收益率
+# s += 2
+# ws.range("B{}".format(s)).value = q05 / 100 if mkt_val_net > 0 else q95 / 100
+# # 对应亏损
+# s += 1
+# ws.range("B{}".format(s)).value = np.abs((q05 if mkt_val_net > 0 else q95) / 100 * mkt_val_net / WAN_YUAN)
 
 # --- save as xlsx
 save_file = template_file[SAVE_NAME_START_IDX:].replace("YYYYMMDD", report_date + VERSION_TAG)

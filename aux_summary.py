@@ -24,15 +24,25 @@ idx_md_df = idx_md_df.set_index("trade_date")
 summary_stats = []
 realized_pnl_cumsum = 0
 for trade_date in calendar.get_iter_list(t_bgn_date=BGN_DATE, t_stp_date=next_date, t_ascending=True):
+    # load position
     this_pos_sum_file = "position.summary.{}.csv".format(trade_date)
     this_pos_sum_path = os.path.join(INTERMEDIARY_DIR, "position_summary", trade_date[0:4], this_pos_sum_file)
     this_pos_sum_df = pd.read_csv(this_pos_sum_path, header=0)
 
-    # save realized pnl
+    # load position:by instrument
+    # this part is updated since 20220527
+    this_pos_sum_by_instru_path = this_pos_sum_path.replace("position.summary", "position_by_instru.summary")
+    if os.path.exists(this_pos_sum_by_instru_path):
+        this_pos_sum_by_instru_df = pd.read_csv(this_pos_sum_by_instru_path, header=0)
+    else:
+        this_pos_sum_by_instru_df = None
+
+    # load realized pnl
     this_realized_file = "realized.pnl.{}.csv".format(trade_date)
     this_realized_path = os.path.join(INTERMEDIARY_DIR, "realized_pnl", trade_date[0:4], this_realized_file)
     this_realized_df = pd.read_csv(this_realized_path, header=0)
 
+    # update position statistics
     unrealized_pnl = 0
     cost_val = 0
     mkt_val = 0
@@ -51,11 +61,20 @@ for trade_date in calendar.get_iter_list(t_bgn_date=BGN_DATE, t_stp_date=next_da
         cost_margin = this_pos_sum_df["cost_margin"].sum()
         mkt_margin = this_pos_sum_df["mkt_margin"].sum()
 
+    # update position statistics:by instrument
+    # this part is updated since 20220527
+    mkt_val_by_instru_sum = 0
+    mkt_val_by_instru_max = 0
+    if this_pos_sum_by_instru_df is not None:
+        mkt_val_by_instru_sum = this_pos_sum_by_instru_df["signed_mkt_val"].abs().sum()
+        mkt_val_by_instru_max = this_pos_sum_by_instru_df["signed_mkt_val"].abs().max()
+
+    # update realized statistics
     realized_pnl = 0
     if len(this_realized_df) > 0:
         realized_pnl = this_realized_df["realized_pnl"].sum()
-
     realized_pnl_cumsum += realized_pnl
+
     summary_stats.append({
         "trade_date": trade_date,
         "realized_pnl": realized_pnl,
@@ -64,6 +83,8 @@ for trade_date in calendar.get_iter_list(t_bgn_date=BGN_DATE, t_stp_date=next_da
         "tot_pnl": realized_pnl_cumsum + unrealized_pnl,
         "cost_val": cost_val,
         "mkt_val": mkt_val,
+        "mkt_val_by_instru_sum": mkt_val_by_instru_sum,
+        "mkt_val_by_instru_max": mkt_val_by_instru_max,
         "mkt_val_net": mkt_val_net,
         "mkt_val_lng": mkt_val_lng,
         "mkt_val_srt": mkt_val_srt,

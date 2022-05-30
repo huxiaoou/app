@@ -19,6 +19,9 @@ class CInstrumentInfo(object):
         }[market_eng]
         return market_chs
 
+    def get_windCode(self, t_instrument_id):
+        return self.m_info_df.at[t_instrument_id, "windCode"]
+
 
 class CNAV(object):
     def __init__(self, t_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str):

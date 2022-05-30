@@ -28,6 +28,7 @@ INTERMEDIARY_DIR = os.path.join(ROOT_DIR, "intermediary")
 
 INSTRUMENT_INFO_DIR = os.path.join("/Database", "Futures")
 CALENDAR_DIR = os.path.join("/Database", "Calendar")
+MAJOR_RETURN_DIR = os.path.join(INSTRUMENT_INFO_DIR, "by_instrument", "major_return")
 
 EXCHANGE_ID_ENG = {
     "CFFEX": "CFE",

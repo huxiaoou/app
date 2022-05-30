@@ -139,4 +139,20 @@ else:
 this_pos_sum_df.to_csv(this_pos_sum_path, index=False, float_format="%.6f")
 this_realized_df.to_csv(this_realized_path, index=False, float_format="%.6f")
 
+# --- position by instrument
+# updated @ 2022-05-30
+this_pos_sum_df["instrument"] = this_pos_sum_df["cid"].map(parse_instrument_id)
+this_pos_sum_df["signed_mkt_val"] = this_pos_sum_df["position"] * this_pos_sum_df["mkt_val"]
+this_pos_sum_df["signed_cost_val"] = this_pos_sum_df["position"] * this_pos_sum_df["cost_val"]
+
+this_pos_sum_by_instru_df = pd.pivot_table(
+    data=this_pos_sum_df,
+    index="instrument",
+    values=["signed_mkt_val", "signed_cost_val"],
+    aggfunc=sum
+)
+this_pos_sum_by_instru_df = this_pos_sum_by_instru_df.sort_index(ascending=True)
+this_pos_sum_by_instru_path = this_pos_sum_path.replace("position.summary", "position_by_instru.summary")
+this_pos_sum_by_instru_df.to_csv(this_pos_sum_by_instru_path, index_label="instrument", float_format="%.6f")
+
 print("| {1} | {0} | intermediary data | calculated |".format(report_date, dt.datetime.now()))

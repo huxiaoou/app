@@ -24,7 +24,7 @@ POS_PROP_SCALE = 1E4
 MARGIN_RATE_SCALE = 100
 
 SAVE_NAME_START_IDX = 0
-VERSION_TAG = ""
+VERSION_TAG = ""  # try ".test"
 
 # contracts which are not traded by us
 EXCEPTION_UNIVERSE = ["IC", "IH", "IF"]

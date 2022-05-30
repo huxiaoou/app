@@ -1,3 +1,5 @@
+import numpy as np
+
 from setup import *
 
 
@@ -190,3 +192,24 @@ def get_out_money(t_report_date: str, t_premium_book_path: str) -> float:
     _premium_book_df["trade_date"] = _premium_book_df["日期"].map(lambda z: z.strftime("%Y%m%d"))
     _premium_book_df = _premium_book_df.set_index("trade_date")
     return _premium_book_df.at[t_report_date, "下账"]
+
+
+def get_instrument_trailing_return_quantile(t_wind_code: str, t_report_date: str, t_major_return_dir: str,
+                                            t_percentile: int = 5, t_trailing_window: int = 500, t_return_scale: float = 100):
+    """
+
+    :param t_wind_code: instrument_id in Wind format, such as "CU.SHF", "A.DCE", "MA.CZC"
+    :param t_report_date: trailing window before this date (included)
+    :param t_major_return_dir: directory where major return are saved
+    :param t_percentile: integer between [0, 100], no greater than 50 is suggested
+    :param t_trailing_window: how long to lookup
+    :param t_return_scale：
+    :return:
+    """
+    _major_return_file = "major_return.{}.close.csv.gz".format(t_wind_code)
+    _major_return_path = os.path.join(t_major_return_dir, _major_return_file)
+    _major_return_df = pd.read_csv(_major_return_path, dtype={"trade_date": str}).set_index("trade_date")
+    _major_return_df = _major_return_df.loc[_major_return_df.index <= t_report_date].tail(t_trailing_window)
+    q_l = np.percentile(_major_return_df["major_return"], q=t_percentile) / t_return_scale
+    q_h = np.percentile(_major_return_df["major_return"], q=100 - t_percentile) / t_return_scale
+    return q_l, q_h
