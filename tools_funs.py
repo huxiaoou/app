@@ -1,5 +1,3 @@
-import numpy as np
-
 from setup import *
 
 
@@ -213,3 +211,30 @@ def get_instrument_trailing_return_quantile(t_wind_code: str, t_report_date: str
     q_l = np.percentile(_major_return_df["major_return"], q=t_percentile) / t_return_scale
     q_h = np.percentile(_major_return_df["major_return"], q=100 - t_percentile) / t_return_scale
     return q_l, q_h
+
+
+def cal_VaR(t_report_date: str, t_wgt_srs: pd.DataFrame, t_major_return_dir: str,
+            t_percentile: int = 5, t_trailing_window: int = 500, t_return_scale: float = 100):
+    _ret_data = {}
+    for _wind_code in t_wgt_srs.index:
+        _major_return_file = "major_return.{}.close.csv.gz".format(_wind_code)
+        _major_return_path = os.path.join(t_major_return_dir, _major_return_file)
+        _major_return_df = pd.read_csv(_major_return_path, dtype={"trade_date": str}).set_index("trade_date")
+        _major_return_df = _major_return_df.loc[_major_return_df.index <= t_report_date].tail(t_trailing_window)
+        _ret_data[_wind_code] = _major_return_df["major_return"] / t_return_scale
+    _ret_df = pd.DataFrame(_ret_data)
+
+    # method: simu
+    _simu_pnl_srs = _ret_df.dot(t_wgt_srs)
+    _VaR_simu = np.percentile(_simu_pnl_srs, q=t_percentile)
+
+    # method: theory
+    _wgt_mu = np.mean(_ret_df.dot(t_wgt_srs))
+    _wgt_sd = np.sqrt(t_wgt_srs.dot(_ret_df.cov().dot(t_wgt_srs)))
+
+    # # OR
+    # _wgt_mu = _simu_pnl_srs.mean()
+    # _wgt_sd = _simu_pnl_srs.std()
+    _VaR_theory = _wgt_mu + sps.norm.ppf(t_percentile / t_return_scale) * _wgt_sd
+
+    return _VaR_simu, _VaR_theory

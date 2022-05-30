@@ -37,8 +37,17 @@ if os.path.exists(this_pos_sum_by_instru_path):
         axis=1
     )
     report_date_VaR = this_pos_sum_by_instru_df["VaR"].abs().sum()
+    report_date_VaR_true: tuple = cal_VaR(
+        t_report_date=report_date,
+        t_wgt_srs=this_pos_sum_by_instru_df.set_index("windCode")["signed_mkt_val"],
+        t_major_return_dir=MAJOR_RETURN_DIR,
+        t_percentile=5,
+        t_trailing_window=500,
+        t_return_scale=100
+    )
 else:
     report_date_VaR = 0
+    report_date_VaR_true: tuple = 0, 0
 
 # --- load margin data
 this_margin_file = "margin.{}.csv".format(report_date)
@@ -66,8 +75,7 @@ mkt_val_srt = summary_stats_df.at[report_date, "mkt_val_srt"]
 cost_val_tot = summary_stats_df.at[report_date, "cost_val"]
 mkt_margin = summary_stats_df.at[report_date, "mkt_margin"]
 pnl_tot = summary_stats_df.at[report_date, "tot_pnl"]
-pnl_base_realize = summary_stats_df.at[BASE_YEAR_DATE, "realized_pnl_cumsum"]
-pnl_since_this_year = summary_stats_df.at[report_date, "realized_pnl_cumsum"] - pnl_base_realize + summary_stats_df.at[report_date, "unrealized_pnl"]
+pnl_since_this_year = summary_stats_df.at[report_date, "tot_pnl"] - summary_stats_df.at[BASE_YEAR_DATE, "tot_pnl"]
 q05 = summary_stats_df.at[prev_date, "q05"]
 q95 = summary_stats_df.at[prev_date, "q95"]
 
