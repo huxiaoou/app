@@ -167,7 +167,7 @@ ws.range("F{}".format(s)).value = mkt_val_by_instru_max / WAN_YUAN
 
 # 风险价值VAR值（市场风险整体）
 s += 1
-ws.range("F{}".format(s)).value = report_date_VaR / WAN_YUAN
+ws.range("F{}".format(s)).value = np.abs(report_date_VaR_true[0]) / WAN_YUAN
 
 # 业务规模
 s += 1
