@@ -1,5 +1,5 @@
-set trade_date=20210511
-@REM python aux_download.py %trade_date%
+set trade_date=20220610
+python aux_download.py %trade_date%
 python aux_intermediary.py %trade_date%
 python aux_summary.py %trade_date%
 python aux_margin.py %trade_date%

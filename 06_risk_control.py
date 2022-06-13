@@ -47,7 +47,7 @@ if os.path.exists(this_pos_sum_by_instru_path):
     )
 else:
     report_date_VaR = 0
-    report_date_VaR_true: tuple = 0, 0
+    report_date_VaR_true = 0, 0
 
 # --- load margin data
 this_margin_file = "margin.{}.csv".format(report_date)
