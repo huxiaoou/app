@@ -7,7 +7,6 @@ import datetime as dt
 import xlwings as xw
 import matplotlib.pyplot as plt
 import matplotlib.style
-from time import sleep
 
 matplotlib.style.use("Solarize_Light2")
 plt.rcParams["font.sans-serif"] = ["SimSun"]  # 用来正常显示中文标签
