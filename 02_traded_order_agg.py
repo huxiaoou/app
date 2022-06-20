@@ -68,4 +68,5 @@ if os.path.exists(save_path):
 wb.save(save_path)
 wb.api.PrintOut()
 wb.close()
+sleep(3)
 print("| {2} | {0} | {1} | generated |".format(report_name, save_file, dt.datetime.now()))
