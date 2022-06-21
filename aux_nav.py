@@ -91,7 +91,7 @@ last_date = nav_df.index[-1]
 for i in range(1, 3):
     next_date = calendar.get_next_date(t_this_date=last_date.replace("-", ""), t_shift=i)
     append_date = next_date[0:4] + "-" + next_date[4:6] + "-" + next_date[6:8]
-    nav_df = nav_df.append(pd.Series(name=append_date, dtype=float))
+    nav_df = pd.concat([nav_df, pd.DataFrame(data={"nav": [np.nan]}, index=[append_date])], axis=0)
 y_max = nav_df["nav"].max()
 y_min = nav_df["nav"].min()
 
