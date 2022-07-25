@@ -2,7 +2,7 @@ BGN_DATE = "20200730"
 
 TEMPLATES_FILE_LIST = {
     "input_order_inside": "00_衍生品交易指令单_大宗商品_YYYYMMDD.xlsx",
-    "input_order_outside": "01_衍生品投资管理总部交易指令单_大宗商品_YYYYMMDD.xlsx",
+    "input_order_outside": "01_衍生品金融创新部交易指令单_大宗商品_YYYYMMDD.xlsx",
     "traded_order": "02_衍生品当日成交_大宗商品_YYYYMMDD.xlsx",
     "traded_order_summary": "03_衍生品当日成交汇总_大宗商品_YYYYMMDD.xlsx",
     "position_details": "04_衍生品持仓情况明细表_大宗商品_YYYYMMDD.xlsx",
